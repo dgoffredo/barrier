@@ -63,31 +63,34 @@ Barrier::WaitResult Barrier::wait(std::chrono::steady_clock::time_point deadline
 
 int main() {
   const auto begin = std::chrono::steady_clock::now();
+  const int iterations = 3;
   Barrier barrier{3};
 
-  std::thread t1{[&]() {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    barrier.wait();
-  }};
+  for (int i = 0; i < iterations; ++i) {
+    std::thread t1{[&]() {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      barrier.wait();
+    }};
 
-  std::thread t2{[&]() {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    Barrier::WaitResult result;
-    do {
-      result = barrier.wait(std::chrono::steady_clock::now() + std::chrono::milliseconds(100));
-    } while (result == Barrier::TIMEOUT);
-  }};
+    std::thread t2{[&]() {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      Barrier::WaitResult result;
+      do {
+        result = barrier.wait(std::chrono::steady_clock::now() + std::chrono::milliseconds(100));
+      } while (result == Barrier::TIMEOUT);
+    }};
 
-  std::thread t3{[&]() {
-    std::this_thread::sleep_for(std::chrono::seconds(4));
-    barrier.wait();
-  }};
+    std::thread t3{[&]() {
+      std::this_thread::sleep_for(std::chrono::seconds(4));
+      barrier.wait();
+    }};
 
-  t1.join();
-  t2.join();
-  t3.join();
+    t1.join();
+    t2.join();
+    t3.join();
+  }
 
-  std::cout << "done in "
+  std::cout << "did " << iterations << " rounds in "
     << std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::steady_clock::now() - begin).count()
     << " seconds\n";
